@@ -1,0 +1,74 @@
+create Database miniproject;
+use miniproject;
+CREATE TABLE Customer (
+    Customer_Id INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Address VARCHAR(255) NOT NULL,
+    Phone_Number VARCHAR(15) NOT NULL,
+    Email VARCHAR(100) UNIQUE
+);
+INSERT INTO Customer (Customer_Id, Name, Address, Phone_Number, Email) VALUES
+(101, 'Alice Smith', '123 Main St, Anytown', '555-0101', 'alice.s@example.com'),
+(102, 'Bob Johnson', '456 Oak Ave, Otherville', '555-0102', 'bob.j@example.com'),
+(103, 'Charlie Brown', '789 Pine Ln, Somewhere', '555-0103', 'charlie.b@example.com');
+
+CREATE TABLE Meter (
+    Meter_Id INT PRIMARY KEY,
+    Customer_Id INT NOT NULL,
+    Installation_Date DATE NOT NULL,
+    Last_Reading_Date DATE NOT NULL,
+    FOREIGN KEY (Customer_Id) REFERENCES Customer(Customer_Id) ON DELETE CASCADE
+    -- Note: Installation/Last_Reading_Date constraints assume the database enforces valid date formats.
+);
+INSERT INTO Meter (Meter_Id, Customer_Id, Installation_Date, Last_Reading_Date) VALUES
+(1001, 101, '2020-01-15', '2025-10-31'),
+(1002, 102, '2021-05-20', '2025-10-28'),
+(1003, 103, '2022-11-01', '2025-11-05');
+
+CREATE TABLE Electricity_Usage (
+    Usage_Id INT PRIMARY KEY,
+    Meter_Id INT NOT NULL,
+    Reading_Date DATE NOT NULL,
+    Usage_Units INT NOT NULL,
+    FOREIGN KEY (Meter_Id) REFERENCES Meter(Meter_Id) ON DELETE CASCADE,
+    CHECK (Usage_Units >= 0)
+);
+
+INSERT INTO Electricity_Usage (Usage_Id, Meter_Id, Reading_Date, Usage_Units) VALUES
+(1, 1001, '2025-09-30', 450),
+(2, 1001, '2025-10-31', 520),
+(3, 1002, '2025-10-28', 310),
+(4, 1003, '2025-11-05', 680);
+
+CREATE TABLE Bill (
+    Bill_Id INT PRIMARY KEY,
+    Meter_Id INT NOT NULL,
+    Bill_Date DATE NOT NULL,
+    Amount_Due DECIMAL(10, 2) NOT NULL,
+    Due_Date DATE NOT NULL,
+    Paid BOOLEAN NOT NULL DEFAULT 0, -- Use INT/TINYINT in systems that don't support BOOLEAN directly (e.g., MySQL, SQLite)
+    FOREIGN KEY (Meter_Id) REFERENCES Meter(Meter_Id) ON DELETE CASCADE,
+    CHECK (Amount_Due >= 0)
+);
+-- If BOOLEAN is not supported, the definition for Paid should be:
+-- Paid TINYINT NOT NULL DEFAULT 0,
+-- CHECK (Paid IN (0, 1))
+
+INSERT INTO Bill (Bill_Id, Meter_Id, Bill_Date, Amount_Due, Due_Date, Paid) VALUES
+(501, 1001, '2025-11-01', 75.50, '2025-11-20', 0),
+(502, 1002, '2025-10-30', 50.00, '2025-11-15', 1),
+(503, 1003, '2025-11-06', 120.90, '2025-11-25', 0);
+
+CREATE TABLE Payment (
+    Payment_Id INT PRIMARY KEY,
+    Bill_Id INT NOT NULL,
+    Payment_Date DATE NOT NULL,
+    Amount_Paid DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (Bill_Id) REFERENCES Bill(Bill_Id) ON DELETE CASCADE,
+    CHECK (Amount_Paid >= 0)
+);
+
+INSERT INTO Payment (Payment_Id, Bill_Id, Payment_Date, Amount_Paid) VALUES
+(701, 502, '2025-11-10', 50.00);
+
+show tables;
