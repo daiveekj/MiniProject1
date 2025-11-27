@@ -1,0 +1,59 @@
+-- 1.Fetching Records from the table
+
+SELECT * FROM Customer;
+SELECT * FROM Meter;
+SELECT * FROM Electricity_Usage;
+SELECT * FROM Bill;
+SELECT * FROM Payment;
+
+-- 2 Write a query to get total electricity usage per Meter, only for meters with usage greater than 200 units.
+SELECT Meter_Id,SUM(Usage_Units) AS Total_Usage_Units
+FROM Electricity_Usage
+GROUP BY
+    Meter_Id
+HAVING
+    SUM(Usage_Units) > 200;
+
+-- 3 Write a query to list all customers and their total unpaid bill amounts, ordered by amount due in descending.
+SELECT C.Customer_Id, C.Name, SUM(B.Amount_Due) AS Total_Unpaid_Amount
+FROM
+    Customer C
+JOIN
+    Meter M ON C.Customer_Id = M.Customer_Id 
+JOIN
+    Bill B ON M.Meter_Id = B.Meter_Id      
+WHERE
+    B.Paid = 0                              
+GROUP BY
+    C.Customer_Id, C.Name
+ORDER BY
+    Total_Unpaid_Amount DESC;
+    
+-- 4 Write a query to get all bills along with payment status, sorted by BillDate in ascending.
+SELECT Bill_Id, Meter_Id, Bill_Date, Amount_Due, Due_Date,
+    IF(Paid = 1, 'Paid', 'Unpaid') AS Payment_Status
+FROM
+    Bill
+ORDER BY
+    Bill_Date ASC;
+    
+-- 5 Write a query to find all customers who have at least one meter installed after '2023-12-31'.
+SELECT DISTINCT C.Customer_Id, C.Name, C.Email, M.Installation_Date
+FROM
+    Customer C
+JOIN
+    Meter M ON C.Customer_Id = M.Customer_Id
+WHERE
+    M.Installation_Date > '2023-12-31';  
+    
+-- 6 Write a query to show meters with their last reading date and the total usage units in descending order of usage.
+SELECT M.Meter_Id, M.Last_Reading_Date, SUM(EU.Usage_Units) AS Total_Usage
+FROM
+    Meter M
+JOIN
+    Electricity_Usage EU ON M.Meter_Id = EU.Meter_Id
+GROUP BY
+    M.Meter_Id, M.Last_Reading_Date
+ORDER BY
+    Total_Usage DESC;
+    
